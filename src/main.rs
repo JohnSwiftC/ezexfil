@@ -159,7 +159,7 @@ fn handle_message_stack(
             None => continue,
         };
 
-        log_file.write_all(message.as_bytes())?;
+        log_file.write_all(format!("{}\n", message).as_bytes())?;
     }
 
     Ok(())
