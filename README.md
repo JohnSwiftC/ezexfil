@@ -1,14 +1,23 @@
-# ezexfil STILL IN DEVELOPMENT, DOES NOT WORK CURRENTLY!
+# ezexfil
 
-An easy alternative for exfiltrating information on target machines, similar to other common techniques such as a Discord WebHook.
+An easy to use information exfiltration tool built with Rust, which logs all information sent via a http POST request.
 
-Ezexfil will generate a log file every time it is ran and will store all data POSTed to it. This can be interchanged with a Discord WebHook URL which will allow it to work in the same exact way.
+You may also optionally forward logged data to a Discord WebHook. When doing this, just use the script you are already using a webhook in, and replace it with the machine hosting this tool. Then provide your Discord WebHook URL as the first argument when starting ezexfil.
 
-The main benefits of this tool over WebHooks are that Discord cannot track data being sent, and there is no enforcement of source origin (which is true for Discord WebHooks, which cannot recieve requests from origin discord.com)
+This allows for two main things: your WebHook URL is shielded, and you can send requests with an original origin of `www.discord.com`, which is normally prohibited.
 
 # Build
 
 Like any Rust crate, build with `cargo build --release`. Alternatively, you can use `cargo run` to run without building a binary, but this is not really recommended.
+
+# Usage
+
+Ezexfil automatically logs all data sent via a POST request to a log file. Optionally, you can choose to proxy Discord WebHook traffic through the tool by providing the URL as the first argument.
+
+Ex. ezexfil <Your webHook URL>
+
+It is important to note that if you use this option, data sent must be in valid Discord WebHook JSON already. The url hosting this tool can be plugged into the same place where you would put your
+normal WebHook URL.
 
 # Disclaimer
 
