@@ -1,27 +1,27 @@
-use std::net::{TcpListener, TcpStream};
-use std::error::Error as StdError;
-use std::io::ErrorKind;
-use std::fs::File;
-use std::sync::{Arc, Mutex};
-use std::io::BufReader;
-use std::io::Write;
-use std::io::BufRead;
-use std::io::Read;
+use reqwest;
 use std::collections::HashMap;
 use std::env;
-use reqwest;
+use std::error::Error as StdError;
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
+use std::io::ErrorKind;
+use std::io::Read;
+use std::io::Write;
+use std::net::{TcpListener, TcpStream};
+use std::sync::{Arc, Mutex};
 use std::thread;
 
 fn main() -> Result<(), Box<dyn StdError + Send + Sync + 'static>> {
     // Create a socket and listen
-    
-    let listener = TcpListener::bind("0.0.0.0:8080")?;
-    
+
+    let listener = TcpListener::bind("0.0.0.0:8090")?;
+
     let message_stack: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
     let log_file = make_log_file("ezexfil").expect("Could not make log file");
 
     let args: Vec<String> = env::args().collect();
-    
+
     let mut webhook: Option<String> = None;
 
     if let Some(i) = args.get(1) {
@@ -50,7 +50,7 @@ fn make_log_file(name: &str) -> Result<File, Box<dyn StdError + Send + Sync + 's
         match File::create_new(format!("{}-{}.txt", name, log_iter)) {
             Ok(f) => {
                 return Ok(f);
-            },
+            }
             Err(e) => {
                 if e.kind() == ErrorKind::AlreadyExists {
                     log_iter += 1;
@@ -58,14 +58,17 @@ fn make_log_file(name: &str) -> Result<File, Box<dyn StdError + Send + Sync + 's
                 } else {
                     return Err(Box::new(e));
                 }
-            },
-        } 
+            }
+        }
     }
 }
 
 // Doesn't need a return type, will just panic the thread.
-fn handle_connection(stream: TcpStream, message_stack: Arc<Mutex<Vec<String>>>, webhook: Option<String>) {
-    
+fn handle_connection(
+    stream: TcpStream,
+    message_stack: Arc<Mutex<Vec<String>>>,
+    webhook: Option<String>,
+) {
     let mut buf_reader = BufReader::new(&stream);
 
     let mut line_buf = String::new();
@@ -122,26 +125,27 @@ fn handle_connection(stream: TcpStream, message_stack: Arc<Mutex<Vec<String>>>, 
     let body = String::from_utf8(bytes).expect("Invalid String!");
 
     // Optionally send to another webhook
-    
+
     if let Some(w) = webhook {
         let client = reqwest::blocking::Client::new();
 
-        let _ = client.post(w)
+        let response = client
+            .post(w)
             .body(body.clone())
+            .header("Content-Type", "application/json")
             .send();
     }
-
 
     let mut message_stack = message_stack.lock().unwrap();
 
     message_stack.push(body);
-
 }
 
-fn handle_message_stack(message_stack: Arc<Mutex<Vec<String>>>, mut log_file: File) -> Result<(), Box<dyn StdError + Send + Sync + 'static>> {
-
+fn handle_message_stack(
+    message_stack: Arc<Mutex<Vec<String>>>,
+    mut log_file: File,
+) -> Result<(), Box<dyn StdError + Send + Sync + 'static>> {
     loop {
-
         // Message stack unlocked. We don't want to change the Arc we already have as an input to
         // the function.
         let mut msu = message_stack.lock().expect("message_stack lock failure.");
@@ -156,7 +160,6 @@ fn handle_message_stack(message_stack: Arc<Mutex<Vec<String>>>, mut log_file: Fi
         };
 
         log_file.write_all(message.as_bytes())?;
-    
     }
 
     Ok(())
