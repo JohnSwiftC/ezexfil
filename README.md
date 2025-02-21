@@ -1,4 +1,4 @@
-# ezexfil
+# ezexfil STILL IN DEVELOPMENT, DOES NOT WORK CURRENTLY!
 
 An easy alternative for exfiltrating information on target machines, similar to other common techniques such as a Discord WebHook.
 
