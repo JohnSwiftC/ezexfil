@@ -8,6 +8,9 @@ use std::io::Write;
 use std::io::BufRead;
 use std::io::Read;
 use std::collections::HashMap;
+use std::env;
+use reqwest;
+use std::thread;
 
 fn main() -> Result<(), Box<dyn StdError + Send + Sync + 'static>> {
     // Create a socket and listen
@@ -15,11 +18,27 @@ fn main() -> Result<(), Box<dyn StdError + Send + Sync + 'static>> {
     let listener = TcpListener::bind("0.0.0.0:80")?;
     
     let message_stack: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let log_file = make_log_file("ezexfil").expect("Could not make log file");
+
+    let args: Vec<String> = env::args().collect();
     
-    
+    let mut webhook: Option<String> = None;
+
+    if let Some(i) = args.get(1) {
+        webhook = Some(i.to_owned());
+    }
+
+    let msc = Arc::clone(&message_stack);
+    thread::spawn(move || {
+        let _ = handle_message_stack(msc, log_file);
+    });
 
     for stream in listener.incoming() {
-        
+        let w_clone = webhook.clone();
+        let msc = Arc::clone(&message_stack);
+        thread::spawn(move || {
+            handle_connection(stream.expect("Bad Stream"), msc, w_clone);
+        });
     }
 
     Ok(())
@@ -45,7 +64,7 @@ fn make_log_file(name: &str) -> Result<File, Box<dyn StdError + Send + Sync + 's
 }
 
 // Doesn't need a return type, will just panic the thread.
-fn handle_connection(stream: TcpStream, message_stack: Arc<Mutex<Vec<String>>>) {
+fn handle_connection(stream: TcpStream, message_stack: Arc<Mutex<Vec<String>>>, webhook: Option<String>) {
     
     let mut buf_reader = BufReader::new(&stream);
 
@@ -102,8 +121,20 @@ fn handle_connection(stream: TcpStream, message_stack: Arc<Mutex<Vec<String>>>) 
 
     let body = String::from_utf8(bytes).expect("Invalid String!");
 
+    // Optionally send to another webhook
+    
+    if let Some(w) = webhook {
+        let client = reqwest::blocking::Client::new();
+
+        let _ = client.post(w)
+            .body(body.clone())
+            .send();
+    }
 
 
+    let mut message_stack = message_stack.lock().unwrap();
+
+    message_stack.push(body);
 
 }
 
