@@ -15,7 +15,7 @@ use std::thread;
 fn main() -> Result<(), Box<dyn StdError + Send + Sync + 'static>> {
     // Create a socket and listen
     
-    let listener = TcpListener::bind("0.0.0.0:80")?;
+    let listener = TcpListener::bind("0.0.0.0:8080")?;
     
     let message_stack: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
     let log_file = make_log_file("ezexfil").expect("Could not make log file");
