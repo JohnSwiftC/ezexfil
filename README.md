@@ -12,7 +12,7 @@ Like any Rust crate, build with `cargo build --release`. Alternatively, you can 
 
 # Usage
 
-**BY DEFAULT, EZEXFIL RUNS ON PORT 8090. THIS CAN BE EASILY CHANGING THE PORT IN TcpListener::bind()**
+**BY DEFAULT, EZEXFIL RUNS ON PORT 8090. THIS CAN BE CHANGED BY SETTING THE PORT IN TcpListener::bind()**
 
 Ezexfil automatically logs all data sent via a POST request to a log file. Optionally, you can choose to proxy Discord WebHook traffic through the tool by providing the URL as the first argument.
 
