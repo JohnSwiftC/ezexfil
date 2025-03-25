@@ -14,7 +14,7 @@ Like any Rust crate, build with `cargo build --release`. Alternatively, you can 
 
 Ezexfil automatically logs all data sent via a POST request to a log file. Optionally, you can choose to proxy Discord WebHook traffic through the tool by providing the URL as the first argument.
 
-Ex. ezexfil \<Your webHook URL\>
+Ex. ezexfil \<port\> \<Optional WebHook URL\>
 
 It is important to note that if you use this option, data sent must be in valid Discord WebHook JSON already. The url hosting this tool can be plugged into the same place where you would put your
 normal WebHook URL.

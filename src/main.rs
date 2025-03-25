@@ -15,16 +15,16 @@ use std::thread;
 fn main() -> Result<(), Box<dyn StdError + Send + Sync + 'static>> {
     // Create a socket and listen
 
-    let listener = TcpListener::bind("0.0.0.0:8090")?;
+    let args: Vec<String> = env::args().collect();
+
+    let listener = TcpListener::bind(format!("0.0.0.0:{}", args.get(1).expect("No port specified!")))?;
 
     let message_stack: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
     let log_file = make_log_file("ezexfil").expect("Could not make log file");
 
-    let args: Vec<String> = env::args().collect();
-
     let mut webhook: Option<String> = None;
 
-    if let Some(i) = args.get(1) {
+    if let Some(i) = args.get(2) {
         webhook = Some(i.to_owned());
     }
 
